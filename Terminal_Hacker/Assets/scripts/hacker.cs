@@ -12,7 +12,8 @@ public class hacker : MonoBehaviour
     enum gameState { Menu, Password, Win };
     gameState currentState;
 
-    string developerName = "VA Pheon!X";
+    const string menuHint = "You can goto main menu at any time by typing 'Menu or menu' !";
+    const string developerName = "VA Pheon!X";
     string password = null;
 
     string[] tPassword = { "assault", "brutality", "confusion", "ferocity", "vehemence", "fierceness", "massacre", "carnage" };
@@ -60,37 +61,70 @@ public class hacker : MonoBehaviour
         }
         else if (currentState == gameState.Password)
         {
-            levelManager(playerInput);
+            levelManager(playerInput, level);
         }
     }
 
-    public void levelSelect()
+    public void HandleMainMenu(string playerInput)
+    {
+        if (playerInput == "T" || playerInput == "t")
+        {
+            level = 1;
+            levelSelect(level);
+        }
+        else if (playerInput == "U" || playerInput == "u")
+        {
+            level = 2;
+            levelSelect(level);
+        }
+        else if (playerInput == "M" || playerInput == "m")
+        {
+            level = 3;
+            levelSelect(level);
+        }
+        else if (playerInput == "who is dev")
+        {
+            level = 8;
+            levelSelect(level);
+        }
+        else if (playerInput == "quit" || playerInput == "Quit")
+        {
+            Application.Quit();
+        }
+        else
+        {
+            level = 10;
+            levelSelect(level);
+        }
+    }
+
+    public void levelSelect(int getLevel)
     {
         Terminal.ClearScreen();
 
         switch(level)
         {
             case 1:
-                Terminal.WriteLine("There are 8 Firewalls in the Terrorist network.");
+                Terminal.WriteLine("There are 5 Firewalls in the Terrorist network.");
                 Terminal.WriteLine("I chalange that you can't even bypass 1 Firewall !");
 
-                PasswordState();
+                PasswordState(getLevel);
 
                 break;
 
             case 2:
-                Terminal.WriteLine("There are 8 Firewalls in the University network.");
+                Terminal.WriteLine("There are 5 Firewalls in the University network.");
                 Terminal.WriteLine("I chalange that you can't even bypass 1 Firewall !");
 
-                PasswordState();
+                PasswordState(getLevel);
 
                 break;
 
             case 3:
-                Terminal.WriteLine("There are 8 Firewalls in the Army network.");
+                Terminal.WriteLine("There are 5 Firewalls in the Army network.");
                 Terminal.WriteLine("I chalange that you can't even bypass 1 Firewall !");
 
-                PasswordState();
+                PasswordState(getLevel);
 
                 break;
 
@@ -109,65 +143,82 @@ public class hacker : MonoBehaviour
         }
     }
 
-    public void PasswordState()
+    public void PasswordState(int getLevel)
     {
         currentState = gameState.Password;
 
-        Terminal.ClearScreen();
-        Terminal.WriteLine("Enter the password : ");
-    }
+        password = setPassword(getLevel);
 
-    public void HandleMainMenu(string playerInput)
-    {
-        if (playerInput == "T" || playerInput == "t")
+        if (layerPassed <= 0)
         {
-            level = 1;
-            password = tPassword[Random.Range(0, tPassword.Length)];
-            levelSelect();
-        }
-        else if (playerInput == "U" || playerInput == "u")
-        {
-            level = 2;
-            password = uPassword[Random.Range(0, uPassword.Length)];
-            levelSelect();
-        }
-        else if (playerInput == "M" || playerInput == "m")
-        {
-            level = 3;
-            password = mPassword[Random.Range(0, mPassword.Length)];
-            levelSelect();
-        }
-        else if (playerInput == "who is dev")
-        {
-            level = 8;
-            levelSelect();
-        }
-        else if (playerInput == "quit" || playerInput == "Quit")
-        {
-            Application.Quit();
+            Terminal.WriteLine("Enter the password, hint : ");
+            Terminal.WriteLine(password.Anagram());
+            Terminal.WriteLine("");
         }
         else
         {
-            level = 10;
-            levelSelect();
+            Terminal.WriteLine("Enter Password for Next layer, hint : ");
+            Terminal.WriteLine(password.Anagram());
+            Terminal.WriteLine("");
         }
     }
 
-    public void levelManager(string playerInput)
+    public string setPassword(int getLevel)
+    {
+        string makePassword = null;
+
+        switch(getLevel)
+        {
+            case 1:
+                makePassword = tPassword[Random.Range(0, tPassword.Length)];
+                break;
+
+            case 2:
+                makePassword = uPassword[Random.Range(0, uPassword.Length)];
+                break;
+
+            case 3:
+                makePassword = mPassword[Random.Range(0, mPassword.Length)];
+                break;
+
+            default:
+                Debug.LogError("Invalid level reached");
+                break;
+        }
+
+        return makePassword;
+    }
+
+    public void levelManager(string playerInput, int getLevel)
     {
         if (playerInput == password)
         {
+            Terminal.ClearScreen();
+
             Terminal.WriteLine("Congratulations...");
             Terminal.WriteLine("You have bypassed the firewall layer. Let's see if you can bypass the next one.");
 
             layerPassed++;
+
+            PasswordState(getLevel);
         }
         else
         {
             failedAttempts--;
+            Terminal.WriteLine("");
             Terminal.WriteLine("Wrong Password.");
             Terminal.WriteLine("Only " + failedAttempts + " attempts left.");
-            Terminal.WriteLine("Enter the password : ");
+            
+            if (failedAttempts < 3)
+            {
+                Terminal.WriteLine("");
+                Terminal.WriteLine(menuHint);
+                Terminal.WriteLine("");
+            }
+
+            Terminal.WriteLine("Enter the password, hint : ");
+            Terminal.WriteLine(password.Anagram());
+            Terminal.WriteLine("");
         }
 
         if (failedAttempts <= 0)
@@ -177,6 +228,11 @@ public class hacker : MonoBehaviour
             Terminal.WriteLine("As I thaught...");
             Terminal.WriteLine("You are not as good as you think you are !!!");
             Terminal.WriteLine("Type 'Menu' or 'menu' to go to welcome page.");
+        }
+
+        if (layerPassed == 5)
+        {
+            playerWon();
         }
     }
 
